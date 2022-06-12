@@ -1,0 +1,47 @@
+version: "2"
+services:
+  backend:
+    image: keycb/demo_backend:1.0.0
+    environment:
+      keycloak_auth: "http://keycloak:8080/auth"
+      realm_name: "Demo"
+      resource_name: "backend_resource"
+    ports:
+      - "81:8080"
+    depends_on:
+      - keycloak
+
+  frontend:
+    image: keycb/demo_frontend:1.0.0    
+    ports: 
+      - "80:80"
+    depends_on:
+      - backend
+      - auth
+
+  auth:
+    image: keycb/demo_auth:1.0.0
+    ports:
+      - "82:8080"
+    environment:
+      baseUrl: "http://keycloak:8080/auth"
+      tokenEndPoint: "/realms/master/protocol/openid-connect/token"
+      registerEndPoint: "/admin/realms/Demo/users"
+      signInEndPoint: "/realms/Demo/protocol/openid-connect/token"
+      username: "admin"
+      password: "admin"
+      aClientId: "admin-cli"
+      clientId: "frontend_resource"
+      tokenLifespan: 55
+      refreshTokenLifespan: 120
+    depends_on:
+      - keycloak
+        
+  keycloak:
+      image: keycb/demo_keycloak:1.0.0 
+      environment:
+          KEYCLOAK_USER: "admin"
+          KEYCLOAK_PASSWORD: "admin"
+      ports:
+          - 8080:8080
+            
